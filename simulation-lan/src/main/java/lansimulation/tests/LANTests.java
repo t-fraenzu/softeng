@@ -22,6 +22,7 @@ package lansimulation.tests;
 import lansimulation.Network;
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -307,16 +308,14 @@ public class LANTests {
 
     @Test
     public void testPreconditionViolation() {
+        // arrange
         Network network = Network.DefaultExample();
         StringWriter report = new StringWriter(100);
+        String unknownWorkstation = "StrangeWorkstationName";
+        String anyString = "randomText";
 
-        try {
-            network.requestWorkstationPrintsDocument("UnknownWorkstation",
-                    "does not matter", "does not matter", report);
-            fail("Assertion expected");
-        } catch (Exception e) {
-
-        }
-
+        // act & assert
+        Assertions.assertThrows(AssertionError.class,
+                () -> network.requestWorkstationPrintsDocument(unknownWorkstation, anyString, anyString, report));
     }
 }
