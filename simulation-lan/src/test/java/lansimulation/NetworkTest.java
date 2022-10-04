@@ -20,7 +20,7 @@ public class NetworkTest {
 
     @BeforeEach
     public void setUp() {
-        testee = new Network(1, new MessageAdapter(), new ReportingWrapper(null));
+        testee = new Network(1, new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY), new ReportingWrapper(null));
         writer = new StringWriter();
     }
 

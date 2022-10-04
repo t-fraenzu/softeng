@@ -91,7 +91,7 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Network DefaultExample() {
-		Network network = new Network(2, new MessageAdapter(), new ReportingWrapper(null));
+		Network network = new Network(2, new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY), new ReportingWrapper(null));
 
 		Node wsFilip = new Node(Node.WORKSTATION, "Filip");
 		Node n1 = new Node(Node.NODE, "n1");
