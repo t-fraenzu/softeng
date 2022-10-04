@@ -23,9 +23,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Optional;
 
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+
+import javax.swing.text.html.Option;
 
 /**
  * A <em>Network</em> represents the basic data stucture for simulating a
@@ -34,6 +37,7 @@ import lansimulation.internals.Packet;
  * reached their destination, or until they travelled the whole token ring.
  */
 public class Network {
+	public static final String LABEL_VALUE_TERMINATION_SYMBOL = ".";
 	/**
 	 * Holds a pointer to myself. Used to verify whether I am properly
 	 * initialized.
@@ -337,56 +341,22 @@ public class Network {
 		return result;
 	}
 
-	private boolean printDocument(Node printer, Packet document, Writer report) {
+	protected boolean printDocument(Node printer, Packet document, Writer report) {
 		String author = "Unknown";
 		String title = "Untitled";
-		int startPos = 0, endPos = 0;
 
 		if (printer.type_ == Node.PRINTER) {
 			try {
 				if (document.message_.startsWith("!PS")) {
-					startPos = document.message_.indexOf("author:");
-					if (startPos >= 0) {
-						endPos = document.message_.indexOf(".", startPos + 7);
-						if (endPos < 0) {
-							endPos = document.message_.length();
-						}
+					author = searchAuthorInMessage(document.message_).orElse(author);
+					title = searchTitleInMessage(document.message_).orElse(title);
 
-						author = document.message_.substring(startPos + 7,
-								endPos);
-					}
-
-					startPos = document.message_.indexOf("title:");
-					if (startPos >= 0) {
-						endPos = document.message_.indexOf(".", startPos + 6);
-						if (endPos < 0) {
-							endPos = document.message_.length();
-						}
-
-						title = document.message_.substring(startPos + 6,
-								endPos);
-					}
-
-					report.write("\tAccounting -- author = '");
-					report.write(author);
-					report.write("' -- title = '");
-					report.write(title);
-					report.write("'\n");
-					report.write(">>> Postscript job delivered.\n\n");
-					report.flush();
+					writeExecutedActionToReport(report, author, title, "Postscript job delivered.");
 				} else {
 					title = "ASCII DOCUMENT";
-					if (document.message_.length() >= 16) {
-						author = document.message_.substring(8, 16);
-					}
+					author = getAuthorFromFixedPosition(document.message_).orElse(author);
 
-					report.write("\tAccounting -- author = '");
-					report.write(author);
-					report.write("' -- title = '");
-					report.write(title);
-					report.write("'\n");
-					report.write(">>> ASCII Print job delivered.\n\n");
-					report.flush();
+					writeExecutedActionToReport(report, author, title, "ASCII Print job delivered.");
 				}
 
 			} catch (IOException exc) {
@@ -396,8 +366,7 @@ public class Network {
 			return true;
 		} else {
 			try {
-				report
-						.write(">>> Destinition is not a printer, print job cancelled.\n\n");
+				report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
 				report.flush();
 			} catch (IOException exc) {
 				// just ignore
@@ -405,6 +374,57 @@ public class Network {
 
 			return false;
 		}
+	}
+
+	private Optional<String> getAuthorFromFixedPosition(String message) {
+		if (message.length() >= 16) {
+			return Optional.of(message.substring(8, 16));
+		}
+
+		return Optional.empty();
+	}
+
+	private Optional<String> searchTitleInMessage(String message) {
+		return searchValueOfLabel(message, "title");
+	}
+
+	private Optional<String> searchAuthorInMessage(String message) {
+		return searchValueOfLabel(message, "author");
+	}
+
+	private Optional<String> searchValueOfLabel(String message, String labelName) {
+		String label = labelName + ":";
+		int startPos = message.indexOf(label);
+
+		boolean containsLabel = startPos >= 0;
+
+		if (containsLabel) {
+			int indexOfValueStart = startPos + label.length();
+			int indexOfValueEnd = calculateIndexForEndOfLabelValue(message, indexOfValueStart);
+
+			return Optional.of(message.substring(indexOfValueStart, indexOfValueEnd));
+		}
+
+		return Optional.empty();
+
+	}
+
+	private static int calculateIndexForEndOfLabelValue(String message, int indexOfValueBeginn) {
+		int endPos = message.indexOf(LABEL_VALUE_TERMINATION_SYMBOL, indexOfValueBeginn);
+		if (endPos < 0) {
+			endPos = message.length();
+		}
+		return endPos;
+	}
+
+	private static void writeExecutedActionToReport(Writer report, String author, String title, String actionText) throws IOException {
+		report.write("\tAccounting -- author = '");
+		report.write(author);
+		report.write("' -- title = '");
+		report.write(title);
+		report.write("'\n");
+		report.write(">>> " + actionText + "\n\n");
+		report.flush();
 	}
 
 	/**
@@ -539,5 +559,4 @@ public class Network {
 		} while (currentNode != firstNode_);
 		buf.append("\n</network>");
 	}
-
 }
