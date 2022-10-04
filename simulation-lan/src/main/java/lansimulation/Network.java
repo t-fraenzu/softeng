@@ -28,8 +28,6 @@ import java.util.Optional;
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
 
-import javax.swing.text.html.Option;
-
 /**
  * A <em>Network</em> represents the basic data stucture for simulating a
  * Local Area Network (LAN). The LAN network architecture is a token ring,
@@ -232,17 +230,9 @@ public class Network {
 		Packet packet = new Packet("BROADCAST", firstNode_.name_,
 				firstNode_.name_);
 		do {
-			try {
-				report.write("\tNode '");
-				report.write(currentNode.name_);
-				report.write("' accepts broadcase packet.\n");
-				report.write("\tNode '");
-				report.write(currentNode.name_);
-				report.write("' passes packet on.\n");
-				report.flush();
-			} catch (IOException exc) {
-				// just ignore
-			}
+
+			logAcceptingBroadcastPacket(report, currentNode);
+			logForwardingOfPacket(report, currentNode);
 
 			currentNode = currentNode.nextNode_;
 		} while (!packet.destination_.equals(currentNode.name_));
@@ -254,6 +244,17 @@ public class Network {
 		}
 
 		return true;
+	}
+
+	private void logAcceptingBroadcastPacket(Writer report, Node currentNode) {
+		try {
+			report.write("\tNode '");
+			report.write(currentNode.name_);
+			report.write("' accepts broadcase packet.\n");
+			report.flush();
+		} catch (IOException exc) {
+			// just ignore
+		}
 	}
 
 	/**
@@ -300,26 +301,12 @@ public class Network {
 
 		startNode = (Node) workstations_.get(workstation);
 
-		try {
-			report.write("\tNode '");
-			report.write(startNode.name_);
-			report.write("' passes packet on.\n");
-			report.flush();
-		} catch (IOException exc) {
-			// just ignore
-		}
+		logForwardingOfPacket(report, startNode);
 
 		currentNode = startNode.nextNode_;
 		while ((!packet.destination_.equals(currentNode.name_))
 				& (!packet.origin_.equals(currentNode.name_))) {
-			try {
-				report.write("\tNode '");
-				report.write(currentNode.name_);
-				report.write("' passes packet on.\n");
-				report.flush();
-			} catch (IOException exc) {
-				// just ignore
-			}
+			logForwardingOfPacket(report, currentNode);
 
 			currentNode = currentNode.nextNode_;
 		}
@@ -341,6 +328,17 @@ public class Network {
 		return result;
 	}
 
+	private static void logForwardingOfPacket(Writer report, Node startNode) {
+		try {
+			report.write("\tNode '");
+			report.write(startNode.name_);
+			report.write("' passes packet on.\n");
+			report.flush();
+		} catch (IOException exc) {
+			// just ignore
+		}
+	}
+
 	protected boolean printDocument(Node printer, Packet document, Writer report) {
 		String author = "Unknown";
 		String title = "Untitled";
@@ -351,12 +349,12 @@ public class Network {
 					author = searchAuthorInMessage(document.message_).orElse(author);
 					title = searchTitleInMessage(document.message_).orElse(title);
 
-					writeExecutedActionToReport(report, author, title, "Postscript job delivered.");
+					logExecutedAction(report, author, title, "Postscript job delivered.");
 				} else {
 					title = "ASCII DOCUMENT";
 					author = getAuthorFromFixedPosition(document.message_).orElse(author);
 
-					writeExecutedActionToReport(report, author, title, "ASCII Print job delivered.");
+					logExecutedAction(report, author, title, "ASCII Print job delivered.");
 				}
 
 			} catch (IOException exc) {
@@ -417,7 +415,7 @@ public class Network {
 		return endPos;
 	}
 
-	private static void writeExecutedActionToReport(Writer report, String author, String title, String actionText) throws IOException {
+	private static void logExecutedAction(Writer report, String author, String title, String actionText) throws IOException {
 		report.write("\tAccounting -- author = '");
 		report.write(author);
 		report.write("' -- title = '");
