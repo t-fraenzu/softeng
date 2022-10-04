@@ -27,6 +27,8 @@ import java.util.Optional;
 
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+import lansimulation.reporting.MessageParser;
+import lansimulation.reporting.ReportingWrapper;
 
 /**
  * A <em>Network</em> represents the basic data stucture for simulating a
@@ -35,7 +37,6 @@ import lansimulation.internals.Packet;
  * reached their destination, or until they travelled the whole token ring.
  */
 public class Network {
-	public static final String LABEL_VALUE_TERMINATION_SYMBOL = ".";
 	/**
 	 * Holds a pointer to myself. Used to verify whether I am properly
 	 * initialized.
@@ -52,6 +53,8 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	private Hashtable workstations_;
+	private final MessageParser messageParser;
+	private final ReportingWrapper reportingWrapper;
 
 	/**
 	 * Construct a <em>Network</em> suitable for holding #size Workstations.
@@ -61,7 +64,9 @@ public class Network {
 	 * </p>
 	 */
 	@SuppressWarnings("unchecked")
-	public Network(int size) {
+	public Network(int size, MessageParser messageParser, ReportingWrapper reportingWrapper) {
+		this.messageParser = messageParser;
+		this.reportingWrapper = reportingWrapper;
 		assert size > 0;
 		initPtr_ = this;
 		firstNode_ = null;
@@ -87,7 +92,7 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Network DefaultExample() {
-		Network network = new Network(2);
+		Network network = new Network(2, new MessageParser(), new ReportingWrapper());
 
 		Node wsFilip = new Node(Node.WORKSTATION, "Filip");
 		Node n1 = new Node(Node.NODE, "n1");
@@ -346,13 +351,13 @@ public class Network {
 		if (printer.type_ == Node.PRINTER) {
 			try {
 				if (document.message_.startsWith("!PS")) {
-					author = searchAuthorInMessage(document.message_).orElse(author);
-					title = searchTitleInMessage(document.message_).orElse(title);
+					author = messageParser.searchAuthorInMessage(document.message_).orElse(author);
+					title = messageParser.searchTitleInMessage(document.message_).orElse(title);
 
 					logExecutedAction(report, author, title, "Postscript job delivered.");
 				} else {
 					title = "ASCII DOCUMENT";
-					author = getAuthorFromFixedPosition(document.message_).orElse(author);
+					author = messageParser.getAuthorFromFixedPosition(document.message_).orElse(author);
 
 					logExecutedAction(report, author, title, "ASCII Print job delivered.");
 				}
@@ -374,46 +379,10 @@ public class Network {
 		}
 	}
 
-	private Optional<String> getAuthorFromFixedPosition(String message) {
-		if (message.length() >= 16) {
-			return Optional.of(message.substring(8, 16));
-		}
 
-		return Optional.empty();
-	}
 
-	private Optional<String> searchTitleInMessage(String message) {
-		return searchValueOfLabel(message, "title");
-	}
 
-	private Optional<String> searchAuthorInMessage(String message) {
-		return searchValueOfLabel(message, "author");
-	}
 
-	private Optional<String> searchValueOfLabel(String message, String labelName) {
-		String label = labelName + ":";
-		int startPos = message.indexOf(label);
-
-		boolean containsLabel = startPos >= 0;
-
-		if (containsLabel) {
-			int indexOfValueStart = startPos + label.length();
-			int indexOfValueEnd = calculateIndexForEndOfLabelValue(message, indexOfValueStart);
-
-			return Optional.of(message.substring(indexOfValueStart, indexOfValueEnd));
-		}
-
-		return Optional.empty();
-
-	}
-
-	private static int calculateIndexForEndOfLabelValue(String message, int indexOfValueBeginn) {
-		int endPos = message.indexOf(LABEL_VALUE_TERMINATION_SYMBOL, indexOfValueBeginn);
-		if (endPos < 0) {
-			endPos = message.length();
-		}
-		return endPos;
-	}
 
 	private static void logExecutedAction(Writer report, String author, String title, String actionText) throws IOException {
 		report.write("\tAccounting -- author = '");
