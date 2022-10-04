@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LANSimulation-IntegrationTests" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="lansimulation.LANSimulation" />
+    <module name="simulation-lan" />
+    <option name="PROGRAM_PARAMETERS" value="t" />
+    <option name="VM_PARAMETERS" value="-ea" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/simulation-lan/" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="lansimulation.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
