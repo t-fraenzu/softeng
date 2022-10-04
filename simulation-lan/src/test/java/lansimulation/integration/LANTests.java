@@ -17,7 +17,7 @@
  *   Copyright original Java version: 2004 Bart Du Bois, Serge Demeyer
  *   Copyright C++ version: 2006 Matthias Rieger, Bart Van Rompaey
  */
-package lansimulation.tests;
+package lansimulation.integration;
 
 import lansimulation.Network;
 import lansimulation.internals.Node;

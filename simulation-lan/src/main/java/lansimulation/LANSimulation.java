@@ -19,46 +19,9 @@
  */
 package lansimulation;
 
-import lansimulation.tests.LANTests;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
-import org.junit.platform.launcher.listeners.TestExecutionSummary;
-
 import java.io.StringWriter;
 
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
-
 public class LANSimulation {
-
-    public static void doRegressionTests() {
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectClass(LANTests.class))
-                .build();
-
-        Launcher launcher = LauncherFactory.create();
-        SummaryGeneratingListener listener = new SummaryGeneratingListener();
-        launcher.registerTestExecutionListeners(listener);
-
-        launcher.execute(request);
-        TestExecutionSummary summary = listener.getSummary();
-        printSummary(summary);
-    }
-
-    private static void printSummary(TestExecutionSummary summary) {
-        System.out.println(String.format("Tests Executed/Success/Failed: %s/%s/%s",
-                summary.getTestsStartedCount(), summary.getTestsSucceededCount(),
-                summary.getTestsFailedCount()));
-
-        if(summary.getTestsFailedCount() > 0){
-            summary.getFailures().forEach(failure -> {
-                System.err.println("failed Test: " + failure.getTestIdentifier().getDisplayName());
-                System.err.println(failure.getException());
-            });
-        }
-    }
 
     public static void simulate() {
         Network network = Network.DefaultExample();
@@ -171,11 +134,11 @@ public class LANSimulation {
         if (args.length <= 0) {
             System.out.println("Usage: t(est) | s(imulate) nrOfIterations '");
         } else if (args[0].equals("t")) {// 'test' command
-            doRegressionTests();
+            throw new UnsupportedOperationException("integration test mode t no longer supported");
         } else if (args[0].equals("s")) {// 'simulate' command
             Integer nrOfIters = Integer.valueOf(1);
             if (args.length > 1) {
-                nrOfIters = new Integer(args[1]);
+                nrOfIters = Integer.valueOf(args[1]);
             }
 
             for (int i = 0; i < nrOfIters.intValue(); i++) {
