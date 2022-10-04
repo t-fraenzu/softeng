@@ -17,7 +17,7 @@ class AsciiMessageParserTest {
     @Test
     public void test_parseMessage_titleIsFixed() {
         final String anyMessage = "AuthorA>AnyMessage";
-        final RawMessage input = new RawMessage(anyMessage);
+        final RawMessage input = new RawMessage(anyMessage, MessageType.ASCII);
 
         // act
         MessageContent out = testee.parseMessage(input);
@@ -30,7 +30,7 @@ class AsciiMessageParserTest {
     public void test_parseMessage_authorIsTakenFromFixedPosition() {
         final String expectedAuthor = "Expected";
         final String messageWithValidAuthor = "AuthorA>" + expectedAuthor + "<test";
-        final RawMessage input = new RawMessage(messageWithValidAuthor);
+        final RawMessage input = new RawMessage(messageWithValidAuthor, MessageType.ASCII);
 
         // act
         MessageContent out = testee.parseMessage(input);
@@ -42,7 +42,7 @@ class AsciiMessageParserTest {
     @Test
     public void test_parseMessage_authorIsDefaultWhenMessageIsTooSmall() {
         final String tooShortMessage = "AuthorA>ToSmall";
-        final RawMessage input = new RawMessage(tooShortMessage);
+        final RawMessage input = new RawMessage(tooShortMessage, MessageType.ASCII);
 
         // act
         MessageContent out = testee.parseMessage(input);

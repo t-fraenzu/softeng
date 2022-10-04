@@ -2,7 +2,7 @@ package lansimulation;
 
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
-import lansimulation.reporting.MessageParser;
+import lansimulation.reporting.MessageAdapter;
 import lansimulation.reporting.ReportingWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ public class NetworkTest {
 
     @BeforeEach
     public void setUp() {
-        testee = new Network(1, new MessageParser(), new ReportingWrapper());
+        testee = new Network(1, new MessageAdapter(), new ReportingWrapper(null));
         writer = new StringWriter();
     }
 

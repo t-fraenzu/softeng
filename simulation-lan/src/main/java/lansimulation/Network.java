@@ -36,6 +36,7 @@ import lansimulation.reporting.*;
  * reached their destination, or until they travelled the whole token ring.
  */
 public class Network {
+	private final IMessageAdapter messageAdapter;
 	/**
 	 * Holds a pointer to myself. Used to verify whether I am properly
 	 * initialized.
@@ -52,7 +53,6 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	private Hashtable workstations_;
-	private final MessageParser messageParser;
 	private final ReportingWrapper reportingWrapper;
 
 	/**
@@ -63,8 +63,8 @@ public class Network {
 	 * </p>
 	 */
 	@SuppressWarnings("unchecked")
-	public Network(int size, MessageParser messageParser, ReportingWrapper reportingWrapper) {
-		this.messageParser = messageParser;
+	public Network(int size, IMessageAdapter messageAdapter, ReportingWrapper reportingWrapper) {
+		this.messageAdapter = messageAdapter;
 		this.reportingWrapper = reportingWrapper;
 		assert size > 0;
 		initPtr_ = this;
@@ -91,7 +91,7 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Network DefaultExample() {
-		Network network = new Network(2, new MessageParser(), new ReportingWrapper());
+		Network network = new Network(2, new MessageAdapter(), new ReportingWrapper(null));
 
 		Node wsFilip = new Node(Node.WORKSTATION, "Filip");
 		Node n1 = new Node(Node.NODE, "n1");
@@ -346,13 +346,15 @@ public class Network {
 	protected boolean printDocument(Node printer, Packet document, Writer report) {
 		if (printer.type_ == Node.PRINTER) {
 			try {
+				final RawMessage message;
 				if (document.message_.startsWith("!PS")) {
-					MessageContent messageContent = new PsMessageParser().parseMessage(new RawMessage(document.message_));
-					logExecutedAction(report, messageContent, "Postscript job delivered.");
+					message = new RawMessage(document.message_, MessageType.PS);
 				} else {
-					MessageContent messageContent = new AsciiMessageParser().parseMessage(new RawMessage(document.message_));
-					logExecutedAction(report, messageContent, "ASCII Print job delivered.");
+					message = new RawMessage(document.message_, MessageType.ASCII);
 				}
+
+				MessageContent messageContent = messageAdapter.adaptMessage(message);
+				logExecutedAction(report, messageContent);
 
 			} catch (IOException exc) {
 				// just ignore
@@ -376,13 +378,13 @@ public class Network {
 
 
 
-	private static void logExecutedAction(Writer report, MessageContent messageContent, String actionText) throws IOException {
+	private static void logExecutedAction(Writer report, MessageContent messageContent) throws IOException {
 		report.write("\tAccounting -- author = '");
 		report.write(messageContent.getAuthor());
 		report.write("' -- title = '");
 		report.write(messageContent.getTitle());
 		report.write("'\n");
-		report.write(">>> " + actionText + "\n\n");
+		report.write(">>> " + messageContent.getJobType() + " job delivered.\n\n");
 		report.flush();
 	}
 

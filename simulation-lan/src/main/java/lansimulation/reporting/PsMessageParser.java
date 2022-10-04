@@ -43,6 +43,7 @@ public class PsMessageParser implements IMessageParser{
         Optional<String> titleInMessage = searchTitleInMessage(rawMessage.getMessage());
         titleInMessage.ifPresent(messageContent::setTitle);
 
+        messageContent.setJobType("Postscript");
         return messageContent;
     }
 

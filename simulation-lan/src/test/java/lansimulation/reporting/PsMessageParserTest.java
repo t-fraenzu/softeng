@@ -1,11 +1,9 @@
 package lansimulation.reporting;
 
-import lansimulation.internals.Node;
-import lansimulation.internals.Packet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PsMessageParserTest {
 
@@ -20,7 +18,7 @@ class PsMessageParserTest {
     public void test_parseMessage_titleIsTakenFromField() {
         final String expectedTitle = "ExpectedTitleValue";
         final String messageWithValidTitle = "!PSSomeOtherTexttitle:" + expectedTitle;
-        final RawMessage input = new RawMessage(messageWithValidTitle);
+        final RawMessage input = new RawMessage(messageWithValidTitle, MessageType.PS);
 
         // act
         MessageContent out = testee.parseMessage(input);
@@ -33,7 +31,7 @@ class PsMessageParserTest {
     public void test_parseMessage_AuthorIsTakenFromMessage() {
         String expectedAuthor = "ExpectedAuthor";
         String messageWithValidAuthor = "!PSSomeOtherTextauthor:" + expectedAuthor;
-        final RawMessage input = new RawMessage(messageWithValidAuthor);
+        final RawMessage input = new RawMessage(messageWithValidAuthor, MessageType.PS);
 
         // act
         MessageContent out = testee.parseMessage(input);
@@ -45,7 +43,7 @@ class PsMessageParserTest {
     @Test
     public void test_parseMessage_authorIsDefaultWhenMessageContainsNoAuthor() {
         final String messageWithoutAuthor = "AuthorIsNotPresent";
-        final RawMessage input = new RawMessage(messageWithoutAuthor);
+        final RawMessage input = new RawMessage(messageWithoutAuthor, MessageType.PS);
 
         // act
         MessageContent out = testee.parseMessage(input);

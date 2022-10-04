@@ -14,6 +14,7 @@ public class AsciiMessageParser implements IMessageParser{
         getAuthorFromFixedPosition(rawMessage.getMessage())
                 .ifPresent(messageContent::setAuthor);
 
+        messageContent.setJobType("ASCII Print");
         return messageContent;
     }
 
