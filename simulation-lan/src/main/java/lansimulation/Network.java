@@ -19,15 +19,17 @@
  */
 package lansimulation;
 
+import lansimulation.internals.Node;
+import lansimulation.internals.Packet;
+import lansimulation.reporting.DocumentPrinter;
+import lansimulation.reporting.IDocumentPrinter;
+import lansimulation.reporting.MessageAdapter;
+import lansimulation.reporting.ReportingWrapper;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Optional;
-
-import lansimulation.internals.Node;
-import lansimulation.internals.Packet;
-import lansimulation.reporting.*;
 
 /**
  * A <em>Network</em> represents the basic data stucture for simulating a
@@ -36,7 +38,7 @@ import lansimulation.reporting.*;
  * reached their destination, or until they travelled the whole token ring.
  */
 public class Network {
-	private final IMessageAdapter messageAdapter;
+	private final IDocumentPrinter documentPrinter;
 	/**
 	 * Holds a pointer to myself. Used to verify whether I am properly
 	 * initialized.
@@ -63,8 +65,8 @@ public class Network {
 	 * </p>
 	 */
 	@SuppressWarnings("unchecked")
-	public Network(int size, IMessageAdapter messageAdapter, ReportingWrapper reportingWrapper) {
-		this.messageAdapter = messageAdapter;
+	public Network(int size, IDocumentPrinter documentPrinter, ReportingWrapper reportingWrapper) {
+		this.documentPrinter = documentPrinter;
 		this.reportingWrapper = reportingWrapper;
 		assert size > 0;
 		initPtr_ = this;
@@ -91,7 +93,7 @@ public class Network {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Network DefaultExample() {
-		Network network = new Network(2, new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY), new ReportingWrapper(null));
+		Network network = new Network(2, new DocumentPrinter(new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY)), new ReportingWrapper(null));
 
 		Node wsFilip = new Node(Node.WORKSTATION, "Filip");
 		Node n1 = new Node(Node.NODE, "n1");
@@ -316,7 +318,7 @@ public class Network {
 		}
 
 		if (packet.destination_.equals(currentNode.name_)) {
-			result = printDocument(currentNode, packet, report);
+			result = documentPrinter.printDocument(currentNode, packet, report);
 		} else {
 			try {
 				report
@@ -341,51 +343,6 @@ public class Network {
 		} catch (IOException exc) {
 			// just ignore
 		}
-	}
-
-	protected boolean printDocument(Node printer, Packet document, Writer report) {
-		if (printer.type_ == Node.PRINTER) {
-			try {
-				final RawMessage message;
-				if (document.message_.startsWith("!PS")) {
-					message = new RawMessage(document.message_, MessageType.PS);
-				} else {
-					message = new RawMessage(document.message_, MessageType.ASCII);
-				}
-
-				MessageContent messageContent = messageAdapter.adaptMessage(message);
-				logExecutedAction(report, messageContent);
-
-			} catch (IOException exc) {
-				// just ignore
-			}
-
-			return true;
-		} else {
-			try {
-				report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
-				report.flush();
-			} catch (IOException exc) {
-				// just ignore
-			}
-
-			return false;
-		}
-	}
-
-
-
-
-
-
-	private static void logExecutedAction(Writer report, MessageContent messageContent) throws IOException {
-		report.write("\tAccounting -- author = '");
-		report.write(messageContent.getAuthor());
-		report.write("' -- title = '");
-		report.write(messageContent.getTitle());
-		report.write("'\n");
-		report.write(">>> " + messageContent.getJobType() + " job delivered.\n\n");
-		report.flush();
 	}
 
 	/**
