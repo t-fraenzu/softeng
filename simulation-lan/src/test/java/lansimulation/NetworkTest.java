@@ -57,4 +57,35 @@ public class NetworkTest {
         assertTrue(printedReport.contains(expectedTitle));
     }
 
+    @Test
+    public void test_printDocument_AsciiAuthorIsWrittenTo_Writer() {
+        final String expectedAuthor = "Expected";
+        final String messageWithValidTitle = "AuthorA>" + expectedAuthor + "<test";
+        final Packet documentMock = new Packet(messageWithValidTitle, ANY_DESTINATION);
+
+        Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
+
+        // act
+        testee.printDocument(printerNode, documentMock, writer);
+
+        // assert
+        String printedReport = writer.toString();
+        assertTrue(printedReport.contains(expectedAuthor));
+    }
+
+    @Test
+    public void test_printDocument_resolvesAsciiTitle() {
+        final String expectedDocumentTitle = "ASCII DOCUMENT";
+        final Packet documentMock = new Packet("anyMessageText", ANY_DESTINATION);
+
+        Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
+
+        // act
+        testee.printDocument(printerNode, documentMock, writer);
+
+        // assert
+        String printedReport = writer.toString();
+        assertTrue(printedReport.contains(expectedDocumentTitle));
+    }
+
 }

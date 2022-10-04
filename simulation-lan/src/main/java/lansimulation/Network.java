@@ -27,8 +27,7 @@ import java.util.Optional;
 
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
-import lansimulation.reporting.MessageParser;
-import lansimulation.reporting.ReportingWrapper;
+import lansimulation.reporting.*;
 
 /**
  * A <em>Network</em> represents the basic data stucture for simulating a
@@ -345,21 +344,14 @@ public class Network {
 	}
 
 	protected boolean printDocument(Node printer, Packet document, Writer report) {
-		String author = "Unknown";
-		String title = "Untitled";
-
 		if (printer.type_ == Node.PRINTER) {
 			try {
 				if (document.message_.startsWith("!PS")) {
-					author = messageParser.searchAuthorInMessage(document.message_).orElse(author);
-					title = messageParser.searchTitleInMessage(document.message_).orElse(title);
-
-					logExecutedAction(report, author, title, "Postscript job delivered.");
+					MessageContent messageContent = new PsMessageParser().parseMessage(new RawMessage(document.message_));
+					logExecutedAction(report, messageContent, "Postscript job delivered.");
 				} else {
-					title = "ASCII DOCUMENT";
-					author = messageParser.getAuthorFromFixedPosition(document.message_).orElse(author);
-
-					logExecutedAction(report, author, title, "ASCII Print job delivered.");
+					MessageContent messageContent = new AsciiMessageParser().parseMessage(new RawMessage(document.message_));
+					logExecutedAction(report, messageContent, "ASCII Print job delivered.");
 				}
 
 			} catch (IOException exc) {
@@ -384,11 +376,11 @@ public class Network {
 
 
 
-	private static void logExecutedAction(Writer report, String author, String title, String actionText) throws IOException {
+	private static void logExecutedAction(Writer report, MessageContent messageContent, String actionText) throws IOException {
 		report.write("\tAccounting -- author = '");
-		report.write(author);
+		report.write(messageContent.getAuthor());
 		report.write("' -- title = '");
-		report.write(title);
+		report.write(messageContent.getTitle());
 		report.write("'\n");
 		report.write(">>> " + actionText + "\n\n");
 		report.flush();
