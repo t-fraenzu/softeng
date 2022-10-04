@@ -30,162 +30,161 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import java.io.StringWriter;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
 
 public class LANSimulation {
 
-	public static void doRegressionTests() {
-		LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-				.selectors(
-						//selectPackage("lansimulation.tests"),
-						selectClass(LANTests.class)
-				)
-				.build();
+    public static void doRegressionTests() {
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectClass(LANTests.class))
+                .build();
 
-		Launcher launcher = LauncherFactory.create();
-		// Register a listener
-		SummaryGeneratingListener listener = new SummaryGeneratingListener();
-		launcher.registerTestExecutionListeners(listener);
+        Launcher launcher = LauncherFactory.create();
+        SummaryGeneratingListener listener = new SummaryGeneratingListener();
+        launcher.registerTestExecutionListeners(listener);
 
-		//TestPlan testPlan = launcher.discover(request);
+        launcher.execute(request);
+        TestExecutionSummary summary = listener.getSummary();
+        printSummary(summary);
+    }
 
-		launcher.execute(request);
+    private static void printSummary(TestExecutionSummary summary) {
+        System.out.println(String.format("Tests Executed/Success/Failed: %s/%s/%s",
+                summary.getTestsStartedCount(), summary.getTestsSucceededCount(),
+                summary.getTestsFailedCount()));
 
-		TestExecutionSummary summary = listener.getSummary();
-		// printReport(summary);
+        if(summary.getTestsFailedCount() > 0){
+            summary.getFailures().forEach(failure -> {
+                System.err.println("failed Test: " + failure.getTestIdentifier().getDisplayName());
+                System.err.println(failure.getException());
+            });
+        }
+    }
 
-//		JUnitCore junit = new JUnitCore();
-//		junit.addListener(new TextListener(System.out));
-//		junit.run(FirstUnitTest.class);
-//		junit.textui.TestRunner.run(LANTests.suite());
-	}
+    public static void simulate() {
+        Network network = Network.DefaultExample();
+        StringWriter report = new StringWriter(100);
+        StringBuffer buf = new StringBuffer(100);
 
-	public static void simulate() {
-		Network network = Network.DefaultExample();
-		StringWriter report = new StringWriter(100);
-		StringBuffer buf = new StringBuffer(100);
+        System.out.print("siumlate on Network: ");
+        System.out.println(network);
+        System.out.println();
 
-		System.out.print("siumlate on Network: ");
-		System.out.println(network);
-		System.out.println();
+        network.printHTMLOn(buf);
+        System.out
+                .println("---------------------------------HTML------------------------------------------");
+        System.out.println(buf.toString());
+        System.out.println();
 
-		network.printHTMLOn(buf);
-		System.out
-				.println("---------------------------------HTML------------------------------------------");
-		System.out.println(buf.toString());
-		System.out.println();
+        buf.setLength(0);
+        network.printXMLOn(buf);
+        System.out
+                .println("---------------------------------XML------------------------------------------");
+        System.out.println(buf.toString());
+        System.out.println();
 
-		buf.setLength(0);
-		network.printXMLOn(buf);
-		System.out
-				.println("---------------------------------XML------------------------------------------");
-		System.out.println(buf.toString());
-		System.out.println();
+        System.out
+                .println("---------------------------------SCENARIOS------------------------------------------");
+        String document = "author: FILIP   Hello World";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		System.out
-				.println("---------------------------------SCENARIOS------------------------------------------");
-		String document = "author: FILIP   Hello World";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        System.out.print("'Filip' prints '" + document
+                + "' on 'UnknownPrinter': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "UnknownPrinter", report));
+        System.out.println(" (expects false);");
 
-		System.out.print("'Filip' prints '" + document
-				+ "' on 'UnknownPrinter': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "UnknownPrinter", report));
-		System.out.println(" (expects false);");
+        System.out.print("'Filip' prints '" + document + "' on 'Hans': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Hans", report));
+        System.out.println(" (expects false);");
 
-		System.out.print("'Filip' prints '" + document + "' on 'Hans': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Hans", report));
-		System.out.println(" (expects false);");
+        System.out.print("'Filip' prints '" + document + "' on 'n1': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "n1", report));
+        System.out.println(" (expects false);");
 
-		System.out.print("'Filip' prints '" + document + "' on 'n1': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "n1", report));
-		System.out.println(" (expects false);");
+        document = "Hello World";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		document = "Hello World";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        document = "!PS Hello World in postscript.author:Filip.title:Hello.";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		document = "!PS Hello World in postscript.author:Filip.title:Hello.";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        System.out.print("'Filip' prints '" + document + "' on 'Hans': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Hans", report));
+        System.out.println(" (expects false);");
 
-		System.out.print("'Filip' prints '" + document + "' on 'Hans': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Hans", report));
-		System.out.println(" (expects false);");
+        document = "!PS Hello World in postscript.Author:Filip.Title:Hello.";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		document = "!PS Hello World in postscript.Author:Filip.Title:Hello.";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        document = "!PS Hello World in postscript.author:Filip;title:Hello;";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		document = "!PS Hello World in postscript.author:Filip;title:Hello;";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        document = "!PS Hello World in postscript.author:.title:.";
+        System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
+        System.out.print(network.requestWorkstationPrintsDocument("Filip",
+                document, "Andy", report));
+        System.out.println(" (expects true);");
 
-		document = "!PS Hello World in postscript.author:.title:.";
-		System.out.print("'Filip' prints '" + document + "' on 'Andy': ");
-		System.out.print(network.requestWorkstationPrintsDocument("Filip",
-				document, "Andy", report));
-		System.out.println(" (expects true);");
+        try {
+            System.out
+                    .print("'UnknownWorkstation' prints 'does not matter' on 'does not matter': ");
+            System.out.print(network.requestWorkstationPrintsDocument(
+                    "UnknownWorkstation", "does not matter", "does not matter",
+                    report));
+            System.out.println(" (??? no exception);");
+        } catch (AssertionError e1) {
+            System.out.println("exception (as expected);");
+        } catch (NullPointerException e1) {
+            System.out.println("exception (as expected);");
+        }
 
-		try {
-			System.out
-					.print("'UnknownWorkstation' prints 'does not matter' on 'does not matter': ");
-			System.out.print(network.requestWorkstationPrintsDocument(
-					"UnknownWorkstation", "does not matter", "does not matter",
-					report));
-			System.out.println(" (??? no exception);");
-		} catch (AssertionError e1) {
-			System.out.println("exception (as expected);");
-		}
-		catch (NullPointerException e1) {
-			System.out.println("exception (as expected);");
-		}
+        System.out.print("BROADCAST REQUEST: ");
+        System.out.print(network.requestBroadcast(report));
+        System.out.println(" (expects true);");
 
-		System.out.print("BROADCAST REQUEST: ");
-		System.out.print(network.requestBroadcast(report));
-		System.out.println(" (expects true);");
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out
+                .println("---------------------------------REPORT------------------------------------------");
+        System.out.println(report.toString());
+    }
 
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out
-				.println("---------------------------------REPORT------------------------------------------");
-		System.out.println(report.toString());
-	}
+    public static void main(String args[]) {
 
-	public static void main(String args[]) {
+        if (args.length <= 0) {
+            System.out.println("Usage: t(est) | s(imulate) nrOfIterations '");
+        } else if (args[0].equals("t")) {// 'test' command
+            doRegressionTests();
+        } else if (args[0].equals("s")) {// 'simulate' command
+            Integer nrOfIters = Integer.valueOf(1);
+            if (args.length > 1) {
+                nrOfIters = new Integer(args[1]);
+            }
 
-		if (args.length <= 0) {
-			System.out.println("Usage: t(est) | s(imulate) nrOfIterations '");
-		} else if (args[0].equals("t")) {// 'test' command
-			doRegressionTests();
-		} else if (args[0].equals("s")) {// 'simulate' command
-			Integer nrOfIters = Integer.valueOf(1);
-			if (args.length > 1) {
-				nrOfIters = new Integer(args[1]);
-			}
-
-			for (int i = 0; i < nrOfIters.intValue(); i++) {
-				simulate();
-			}
-		} else {// unknown commaND
-			System.out.print("Unknown command to LANSimulation: '");
-			System.out.print(args[0]);
-			System.out.println("'");
-		}
-	}
+            for (int i = 0; i < nrOfIters.intValue(); i++) {
+                simulate();
+            }
+        } else {// unknown commaND
+            System.out.print("Unknown command to LANSimulation: '");
+            System.out.print(args[0]);
+            System.out.println("'");
+        }
+    }
 }
