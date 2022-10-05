@@ -19,13 +19,15 @@
  */
 package lansimulation;
 
+import lansimulation.reporting.ReportingWrapper;
+
 import java.io.StringWriter;
 
 public class LANSimulation {
 
     public static void simulate() {
         Network network = Network.DefaultExample();
-        StringWriter report = new StringWriter(100);
+        ReportingWrapper report = new ReportingWrapper(new StringWriter(100));
         StringBuffer buf = new StringBuffer(100);
 
         System.out.print("siumlate on Network: ");

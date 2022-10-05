@@ -22,6 +22,7 @@ package lansimulation.integration;
 import lansimulation.Network;
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+import lansimulation.reporting.ReportingWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -203,7 +204,7 @@ public class LANTests {
     @Test
     public void testWorkstationPrintsDocument() {
         Network network = Network.DefaultExample();
-        StringWriter report = new StringWriter(500);
+        ReportingWrapper report = new ReportingWrapper(new StringWriter(500));
 
         assertTrue(network.requestWorkstationPrintsDocument(
                 "Filip", "Hello World", "Andy", report), "PrintSuccess ");
@@ -227,7 +228,7 @@ public class LANTests {
     @Test
     public void testBroadcast() {
         Network network = Network.DefaultExample();
-        StringWriter report = new StringWriter(500);
+        ReportingWrapper report = new ReportingWrapper(new StringWriter(500));
 
         assertTrue(network.requestBroadcast(report), "Broadcast ");
     }
@@ -247,7 +248,7 @@ public class LANTests {
         String generateOutputFName = "useOutput.txt", expectedOutputFName = "expectedOutput.txt";
         FileWriter generateOutput;
         StringBuffer buf = new StringBuffer(500);
-        StringWriter report = new StringWriter(500);
+        ReportingWrapper report = new ReportingWrapper(new StringWriter(500));
 
         try {
             generateOutput = new FileWriter(generateOutputFName);
@@ -310,7 +311,7 @@ public class LANTests {
     public void testPreconditionViolation() {
         // arrange
         Network network = Network.DefaultExample();
-        StringWriter report = new StringWriter(100);
+        ReportingWrapper report = new ReportingWrapper(new StringWriter(500));
         String unknownWorkstation = "StrangeWorkstationName";
         String anyString = "randomText";
 
