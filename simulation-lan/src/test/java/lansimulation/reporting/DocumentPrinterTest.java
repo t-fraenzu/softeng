@@ -33,7 +33,7 @@ class DocumentPrinterTest {
         Node printerNode = new Node(Node.PRINTER, "anyName");
 
         // act
-        testee.printDocument(printerNode, documentMock, writer);
+        testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
 
         // assert
         String printedReport = writer.toString();
@@ -49,7 +49,7 @@ class DocumentPrinterTest {
         Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
 
         // act
-        testee.printDocument(printerNode, documentMock, writer);
+        testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
 
         // assert
         String printedReport = writer.toString();
@@ -65,7 +65,7 @@ class DocumentPrinterTest {
         Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
 
         // act
-        testee.printDocument(printerNode, documentMock, writer);
+        testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
 
         // assert
         String printedReport = writer.toString();
@@ -80,7 +80,7 @@ class DocumentPrinterTest {
         Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
 
         // act
-        testee.printDocument(printerNode, documentMock, writer);
+        testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
 
         // assert
         String printedReport = writer.toString();

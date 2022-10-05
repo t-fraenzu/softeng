@@ -6,5 +6,5 @@ import lansimulation.internals.Packet;
 import java.io.Writer;
 
 public interface IDocumentPrinter {
-    boolean printDocument(Node printer, Packet document, Writer report);
+    boolean printDocument(Node printer, Packet document, ReportingWrapper report);
 }

@@ -289,47 +289,59 @@ public class Network {
 			String document, String printer, Writer report) {
 		assert consistentNetwork() & hasWorkstation(workstation);
 
-		try {
-			report.write("'");
-			report.write(workstation);
-			report.write("' requests printing of '");
-			report.write(document);
-			report.write("' on '");
-			report.write(printer);
-			report.write("' ...\n");
-		} catch (IOException exc) {
-			// just ignore
-		}
+        logRequest(workstation, document, printer, report);
 
-		boolean result = false;
-		Node startNode, currentNode;
-		Packet packet = new Packet(document, workstation, printer);
+        Packet packet = new Packet(document, workstation, printer);
 
-		startNode = (Node) workstations_.get(workstation);
+        final Node startNode = (Node) workstations_.get(workstation);
+        Consumer<Node> emptyHopAction = node -> {};
+        final Node possibleDestinationNode = sendPacketToDestination(report, startNode, packet, emptyHopAction);
 
-		logForwardingOfPacket(report, startNode);
+        if (atDestination(possibleDestinationNode, packet)) {
+            return documentPrinter.printDocument(possibleDestinationNode, packet, report);
+        }
 
-		currentNode = startNode.nextNode_;
-		while ((!packet.destination_.equals(currentNode.name_))
-				& (!packet.origin_.equals(currentNode.name_))) {
-			logForwardingOfPacket(report, currentNode);
+        logJobCanceled(report);
+        return false;
+    }
 
-			currentNode = currentNode.nextNode_;
-		}
+    private static void logJobCanceled(ReportingWrapper report) {
+        report.write(">>> Destinition not found, print job cancelled.\n\n");
+        report.flush();
+    }
 
-		if (packet.destination_.equals(currentNode.name_)) {
-			result = documentPrinter.printDocument(currentNode, packet, report);
-		} else {
-			try {
-				report
-						.write(">>> Destinition not found, print job cancelled.\n\n");
-				report.flush();
-			} catch (IOException exc) {
-				// just ignore
-			}
+    private Node sendPacketToDestination(ReportingWrapper report, Node node, Packet packet, Consumer<Node> consumerActionOnHop) {
+        consumerActionOnHop.accept(node);
+        logForwardingOfPacket(report, node);
+        Node currentNode = node.nextNode_;
+        if (atDestination(currentNode, packet)) {
+            return currentNode;
+        }
 
-			result = false;
-		}
+        if (infiniteLoop(packet, currentNode)) {
+            return currentNode;
+        }
+
+        return sendPacketToDestination(report, currentNode, packet, consumerActionOnHop);
+    }
+
+    private static boolean infiniteLoop(Packet packet, Node currentNode) {
+        return packet.origin_.equals(currentNode.name_);
+    }
+
+    private boolean atDestination(Node currentNode, Packet packet) {
+        return currentNode.name_.equals(packet.destination_);
+    }
+
+    private static void logRequest(String workstation, String document, String printer, ReportingWrapper report) {
+        report.write("'");
+        report.write(workstation);
+        report.write("' requests printing of '");
+        report.write(document);
+        report.write("' on '");
+        report.write(printer);
+        report.write("' ...\n");
+    }
 
 		return result;
 	}

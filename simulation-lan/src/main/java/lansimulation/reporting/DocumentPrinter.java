@@ -3,9 +3,6 @@ package lansimulation.reporting;
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
 
-import java.io.IOException;
-import java.io.Writer;
-
 public class DocumentPrinter implements IDocumentPrinter {
 
     private final IMessageAdapter messageAdapter;
@@ -15,7 +12,7 @@ public class DocumentPrinter implements IDocumentPrinter {
         this.messageAdapter = messageAdapter;
     }
 
-    public boolean printDocument(Node printer, Packet document, Writer report) {
+    public boolean printDocument(Node printer, Packet document, ReportingWrapper report) {
         if (printer.type_ == Node.PRINTER) {
             executePrintJob(document, report);
             return true;
@@ -25,36 +22,30 @@ public class DocumentPrinter implements IDocumentPrinter {
         return false;
     }
 
-    private static void logErrorForInvalidDeviceType(Writer report) {
-        try {
-            report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
-            report.flush();
-        } catch (IOException exc) {
-            // just ignore
-        }
+    private static void logErrorForInvalidDeviceType(ReportingWrapper report) {
+        report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
+        report.flush();
     }
 
-    private void executePrintJob(Packet document, Writer report) {
-        try {
-            final RawMessage message = convertIntoRawMessage(document);
-            final MessageContent messageContent = messageAdapter.adaptMessage(message);
-            logExecutedAction(report, messageContent);
-        } catch (IOException exc) {
-            // just ignore
-        }
+    private void executePrintJob(Packet document, ReportingWrapper report) {
+        final RawMessage message = convertIntoRawMessage(document);
+        final MessageContent messageContent = messageAdapter.adaptMessage(message);
+        logExecutedAction(report, messageContent);
     }
 
     private static RawMessage convertIntoRawMessage(Packet document) {
         final RawMessage message;
+
         if (document.message_.startsWith("!PS")) {
             message = new RawMessage(document.message_, MessageType.PS);
         } else {
             message = new RawMessage(document.message_, MessageType.ASCII);
         }
+
         return message;
     }
 
-    private void logExecutedAction(Writer report, MessageContent messageContent) throws IOException {
+    private void logExecutedAction(ReportingWrapper report, MessageContent messageContent) {
         report.write("\tAccounting -- author = '");
         report.write(messageContent.getAuthor());
         report.write("' -- title = '");
