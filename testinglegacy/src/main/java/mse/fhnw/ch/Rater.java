@@ -1,6 +1,6 @@
 package mse.fhnw.ch;
 
-interface Rater {
+public interface Rater {
 
     Object rate(String string, Object assignTier);
 

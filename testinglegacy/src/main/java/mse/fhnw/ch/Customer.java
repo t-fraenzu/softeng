@@ -1,32 +1,24 @@
 package mse.fhnw.ch;
 
-import mse.fhnw.ch.dbconnection.DbConnectionFactory;
+import mse.fhnw.ch.rating.RatingStrategyResolver;
 import mse.fhnw.ch.repositories.DataFetchException;
 import mse.fhnw.ch.repositories.IPolicyRepository;
 import mse.fhnw.ch.repositories.SavedPolicy;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 public class Customer {
 
     private final IPolicyRepository policyRepository;
+    private final RatingStrategyResolver ratingStrategyResolver;
+    private final TierUtil tierUtil;
 
-    public Customer(IPolicyRepository policyRepository) {
+    public Customer(IPolicyRepository policyRepository, RatingStrategyResolver ratingStrategyResolver, TierUtil tierUtil) {
         this.policyRepository = policyRepository;
+        this.ratingStrategyResolver = ratingStrategyResolver;
+        this.tierUtil = tierUtil;
     }
 
     public Policy ratePolicy(Policy policy, Customer customer) throws DataFetchException {
-        Rater rater = null;
-        if (policy.getState().equals("NY")) {
-            rater = new NYRater();
-        } else if (policy.getState().equals("CA")) {
-            rater = new CARater();
-        }
-        TierUtil tierUtil = new TierUtil(); // Note: This makes a Web Services
+        Rater rater = ratingStrategyResolver.resolveRaterForPolicy(policy);
         // call under the covers
         SavedPolicy savedPolicy = policyRepository.getSavedPolicyByCustomerId(policy.getId());
         policy.setLastName(savedPolicy.getName2());
