@@ -1,5 +1,7 @@
 package mse.fhnw.ch;
 
+import mse.fhnw.ch.dbconnection.DbConnectionFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -7,8 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Customer {
-
-    private Connection connection;
 
     public Customer(RGHConnection con) {
     }
@@ -22,19 +22,7 @@ public class Customer {
         }
         TierUtil tierUtil = new TierUtil(); // Note: This makes a Web Services
         // call under the covers
-        String url = "jdbc:mysql://localhost:3306/";
-        String dbName = "policydb";
-        String driver = "com.mysql.jdbc.Driver";
-        String userName = "policyapp";
-        String password = "prodpass";
-        try {
-            Class.forName(driver).newInstance();
-            connection = DriverManager.getConnection(url + dbName, userName, password);
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        Connection connection = new DbConnectionFactory().createDefaultConnection();
         Statement stmt = connection.createStatement();
         ResultSet srs = stmt.executeQuery("SELECT NAME2, NAME1, BIRTHYEAR, SCORE, STATE FROM POLICIES WHERE CUST=" + policy.getId());
         policy.setLastName(srs.getString("NAME2"));
