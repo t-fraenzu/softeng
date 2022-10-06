@@ -4,7 +4,7 @@ public class Policy {
 
     public void setLastName(String string) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public String getState() {
@@ -19,7 +19,7 @@ public class Policy {
 
     public void setRate(Object rate) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }
