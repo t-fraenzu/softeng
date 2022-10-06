@@ -1,6 +1,9 @@
 package mse.fhnw.ch;
 
 import mse.fhnw.ch.dbconnection.DbConnectionFactory;
+import mse.fhnw.ch.repositories.DataFetchException;
+import mse.fhnw.ch.repositories.IPolicyRepository;
+import mse.fhnw.ch.repositories.SavedPolicy;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,10 +13,13 @@ import java.sql.Statement;
 
 public class Customer {
 
-    public Customer(RGHConnection con) {
+    private final IPolicyRepository policyRepository;
+
+    public Customer(IPolicyRepository policyRepository) {
+        this.policyRepository = policyRepository;
     }
 
-    public Policy ratePolicy(Policy policy, Customer customer) throws SQLException {
+    public Policy ratePolicy(Policy policy, Customer customer) throws DataFetchException {
         Rater rater = null;
         if (policy.getState().equals("NY")) {
             rater = new NYRater();
@@ -22,13 +28,11 @@ public class Customer {
         }
         TierUtil tierUtil = new TierUtil(); // Note: This makes a Web Services
         // call under the covers
-        Connection connection = new DbConnectionFactory().createDefaultConnection();
-        Statement stmt = connection.createStatement();
-        ResultSet srs = stmt.executeQuery("SELECT NAME2, NAME1, BIRTHYEAR, SCORE, STATE FROM POLICIES WHERE CUST=" + policy.getId());
-        policy.setLastName(srs.getString("NAME2"));
-        policy.setLastName(srs.getString("NAME1"));
-        policy.setRate(rater.rate(srs.getString("STATE"),
-                tierUtil.assignTier(srs.getString("BIRTHYEAR"), srs.getString("SCORE"))));
+        SavedPolicy savedPolicy = policyRepository.getSavedPolicyByCustomerId(policy.getId());
+        policy.setLastName(savedPolicy.getName2());
+        policy.setLastName(savedPolicy.getName1());
+        policy.setRate(rater.rate(savedPolicy.getState(),
+                tierUtil.assignTier(savedPolicy.getBirthYear(), savedPolicy.getScore())));
 
         return policy;
     }
