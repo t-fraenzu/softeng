@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>testinglegacy</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.config.dir>${project.basedir}/src/main/config</project.config.dir>
+        <mainClass>ch.fhnw.swc.mrs.MovieRentalSystem</mainClass>
+
+        <!-- plugin versions -->
+        <maven-compiler.version>3.10.0</maven-compiler.version>
+        <maven-surefire.version>3.0.0-M5</maven-surefire.version>
+        <exec-maven.version>3.0.0</exec-maven.version>
+        <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
+        <maven-shade.version>3.2.4</maven-shade.version>
+        <maven-site.version>3.11.0</maven-site.version>
+        <maven-javadoc.version>3.3.2</maven-javadoc.version>
+        <maven-project-info-reports.version>3.2.2</maven-project-info-reports.version>
+        <maven-jxr.version>3.1.1</maven-jxr.version>
+
+        <!-- dependency versions -->
+        <junit.jupiter.version>5.8.2</junit.jupiter.version>
+        <commons.csv.version>1.9.0</commons.csv.version>
+        <checkstyle.puppycrawl.version>9.3</checkstyle.puppycrawl.version>
+        <mockito-core-version>4.5.1</mockito-core-version>
+
+        <!-- constants for javadocs -->
+        <javadoc.title>
+            <![CDATA[Movie Rental System -Software Construction!]]>
+        </javadoc.title>
+        <javadoc.footer>
+            <![CDATA[Copyright &copy; 2022 Studiengang Informatik, FHNW]]>
+        </javadoc.footer>
+        <javadoc.excluded-packages>ch.fhnw.swc.mrs.view,:ch.fhnw.swc.mrs.view.about</javadoc.excluded-packages>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler.version}</version>
+                <configuration>
+                    <compilerArgs>
+                        <!-- Prevents recompilation due to missing package-info.class, see
+                            MCOMPILER-205 -->
+                        <arg>-Xpkginfo:always</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
