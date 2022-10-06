@@ -2,9 +2,13 @@ package mse.fhnw.ch;
 
 public class Policy {
 
-    public void setLastName(String string) {
-        // TODO Auto-generated method stub
+    private String policyId;
+    private String name = "";
+    private Object rate;
 
+    public void setLastName(String name) {
+
+        this.name += name;
     }
 
     public String getState() {
@@ -13,13 +17,24 @@ public class Policy {
     }
 
     public String getId() {
-        // TODO Auto-generated method stub
-        return null;
+        return policyId;
     }
 
     public void setRate(Object rate) {
-        // TODO Auto-generated method stub
 
+        this.rate = rate;
     }
 
+    public void setId(String policyId) {
+
+        this.policyId = policyId;
+    }
+
+    public String getLastName() {
+        return name;
+    }
+
+    public Object getRate() {
+        return rate;
+    }
 }

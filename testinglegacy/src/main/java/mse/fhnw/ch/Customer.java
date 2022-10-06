@@ -1,7 +1,6 @@
 package mse.fhnw.ch;
 
 import mse.fhnw.ch.adapter.ITierUtilAdapter;
-import mse.fhnw.ch.adapter.TierUtilAdapter;
 import mse.fhnw.ch.rating.RatingStrategyResolver;
 import mse.fhnw.ch.repositories.DataFetchException;
 import mse.fhnw.ch.repositories.IPolicyRepository;
@@ -19,10 +18,10 @@ public class Customer {
         this.tierUtilAdapter = tierUtilAdapter;
     }
 
-    public Policy ratePolicy(Policy policy, Customer customer) throws DataFetchException {
+    public Policy ratePolicy(Policy policy) throws DataFetchException {
         Rater rater = ratingStrategyResolver.resolveRaterForPolicy(policy);
         // call under the covers
-        SavedPolicy savedPolicy = policyRepository.getSavedPolicyByCustomerId(policy.getId());
+        SavedPolicy savedPolicy = policyRepository.getSavedPolicyByCustId(policy.getId());
         policy.setLastName(savedPolicy.getName2());
         policy.setLastName(savedPolicy.getName1());
         policy.setRate(rater.rate(savedPolicy.getState(),
