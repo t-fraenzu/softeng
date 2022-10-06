@@ -1,5 +1,7 @@
 package mse.fhnw.ch;
 
+import mse.fhnw.ch.adapter.ITierUtilAdapter;
+import mse.fhnw.ch.adapter.TierUtilAdapter;
 import mse.fhnw.ch.rating.RatingStrategyResolver;
 import mse.fhnw.ch.repositories.DataFetchException;
 import mse.fhnw.ch.repositories.IPolicyRepository;
@@ -9,12 +11,12 @@ public class Customer {
 
     private final IPolicyRepository policyRepository;
     private final RatingStrategyResolver ratingStrategyResolver;
-    private final TierUtil tierUtil;
+    private final ITierUtilAdapter tierUtilAdapter;
 
-    public Customer(IPolicyRepository policyRepository, RatingStrategyResolver ratingStrategyResolver, TierUtil tierUtil) {
+    public Customer(IPolicyRepository policyRepository, RatingStrategyResolver ratingStrategyResolver, ITierUtilAdapter tierUtilAdapter) {
         this.policyRepository = policyRepository;
         this.ratingStrategyResolver = ratingStrategyResolver;
-        this.tierUtil = tierUtil;
+        this.tierUtilAdapter = tierUtilAdapter;
     }
 
     public Policy ratePolicy(Policy policy, Customer customer) throws DataFetchException {
@@ -24,7 +26,7 @@ public class Customer {
         policy.setLastName(savedPolicy.getName2());
         policy.setLastName(savedPolicy.getName1());
         policy.setRate(rater.rate(savedPolicy.getState(),
-                tierUtil.assignTier(savedPolicy.getBirthYear(), savedPolicy.getScore())));
+                tierUtilAdapter.assignTier(savedPolicy.getBirthYear(), savedPolicy.getScore())));
 
         return policy;
     }
