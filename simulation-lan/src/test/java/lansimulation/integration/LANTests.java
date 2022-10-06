@@ -178,18 +178,6 @@ public class LANTests {
     }
 
     @Test
-    public void testBasicNode() {
-        Node node;
-
-        node = new Node(Node.NODE, "n");
-        assertEquals(node.type_, Node.NODE, "type_");
-        assertEquals(node.name_, "n", "name_");
-        assertEquals(node.nextNode_, null, "nextNode_");
-        node.nextNode_ = node;
-        assertEquals(node.nextNode_, node, "nextNode_ (after setting)");
-    }
-
-    @Test
     public void testDefaultNetworkToString() {
         Network network = Network.DefaultExample();
 

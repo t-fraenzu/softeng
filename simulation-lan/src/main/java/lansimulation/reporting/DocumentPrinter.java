@@ -2,6 +2,7 @@ package lansimulation.reporting;
 
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+import lansimulation.internals.Printer;
 
 public class DocumentPrinter implements IDocumentPrinter {
 
@@ -12,14 +13,8 @@ public class DocumentPrinter implements IDocumentPrinter {
         this.messageAdapter = messageAdapter;
     }
 
-    public boolean printDocument(Node printer, Packet document, ReportingWrapper report) {
-        if (printer.type_ == Node.PRINTER) {
-            executePrintJob(document, report);
-            return true;
-        }
-
-        logErrorForInvalidDeviceType(report);
-        return false;
+    public void printDocument(Printer printer, Packet document, ReportingWrapper report) {
+        executePrintJob(document, report);
     }
 
     private static void logErrorForInvalidDeviceType(ReportingWrapper report) {

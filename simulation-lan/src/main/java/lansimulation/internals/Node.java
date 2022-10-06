@@ -23,64 +23,67 @@ package lansimulation.internals;
  * A <em>Node</em> represents a single Node in a Local Area Network (LAN).
  * Several types of Nodes exist.
  */
-public class Node {
-	// enumeration constants specifying all legal node types
-	/**
-	 * A node with type NODE has only basic functionality.
-	 */
-	public static final byte NODE = 0;
+public class Node implements NetworkElement {
 
-	/**
-	 * A node with type WORKSTATION may initiate requests on the LAN.
-	 */
-	public static final byte WORKSTATION = 1;
+    /**
+     * Holds the name of the Node.
+     */
+    public String name;
 
-	/**
-	 * A node with type PRINTER may accept packages to be printed.
-	 */
-	public static final byte PRINTER = 2;
+    /**
+     * Holds the next Node in the token ring architecture.
+     */
+    private NetworkElement nextElement;
 
-	/**
-	 * Holds the type of the Node.
-	 */
-	public byte type_;
+    /**
+     * Construct a <em>Node</em> with given #name, and which is
+     * linked to #nextElement.
+     * <p>
+     * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
+     * </p>
+     */
+    public Node(String name, NetworkElement nextElement) {
+        this.name = name;
+        this.nextElement = nextElement;
+    }
 
-	/**
-	 * Holds the name of the Node.
-	 */
-	public String name_;
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * Holds the next Node in the token ring architecture.
-	 * 
-	 * @see lanSimulation.internals.Node
-	 */
-	public Node nextNode_;
+    @Override
+    public void setNextElement(NetworkElement nextElement) {
+        this.nextElement = nextElement;
+    }
 
-	/**
-	 * Construct a <em>Node</em> with given #type and #name.
-	 * <p>
-	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
-	 * </p>
-	 */
-	public Node(byte type, String name) {
-		assert (type >= NODE) & (type <= PRINTER);
-		type_ = type;
-		name_ = name;
-		nextNode_ = null;
-	}
+    @Override
+    public NetworkElement getNextElement() {
+        return nextElement;
+    }
 
-	/**
-	 * Construct a <em>Node</em> with given #type and #name, and which is
-	 * linked to #nextNode.
-	 * <p>
-	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
-	 * </p>
-	 */
-	public Node(byte type, String name, Node nextNode) {
-		assert (type >= NODE) & (type <= PRINTER);
-		type_ = type;
-		name_ = name;
-		nextNode_ = nextNode;
-	}
+    @Override
+    public String getElementDescription() {
+        return "Node " + name + " [Node]";
+    }
+
+    @Override
+    public boolean isWorkstation() {
+        return false;
+    }
+
+    @Override
+    public boolean isNode() {
+        return true;
+    }
+
+    @Override
+    public boolean isPrinter() {
+        return false;
+    }
+
+    @Override
+    public String getXmlDescription() {
+        return "<node>" + name + "</node>";
+    }
 }

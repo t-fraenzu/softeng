@@ -19,8 +19,7 @@
  */
 package lansimulation;
 
-import lansimulation.internals.Node;
-import lansimulation.internals.Packet;
+import lansimulation.internals.*;
 import lansimulation.reporting.DocumentPrinter;
 import lansimulation.reporting.IDocumentPrinter;
 import lansimulation.reporting.MessageAdapter;
@@ -28,7 +27,6 @@ import lansimulation.reporting.ReportingWrapper;
 
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -49,13 +47,13 @@ public class Network {
      * Holds a pointer to some "first" node in the token ring. Used to ensure
      * that various printing operations return expected behaviour.
      */
-    private Node firstNode_;
+    private NetworkElement firstNode_;
     /**
      * Maps the names of workstations on the actual workstations. Used to
      * initiate the requests for the network.
      */
     @SuppressWarnings("unchecked")
-    private Map<String, Node> workstations_;
+    private Map<String, Workstation> workstations_;
 
     /**
      * Construct a <em>Network</em> suitable for holding #size Workstations.
@@ -94,18 +92,14 @@ public class Network {
     public static Network DefaultExample() {
         Network network = new Network(2, new DocumentPrinter(new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY)));
 
-        Node wsFilip = new Node(Node.WORKSTATION, "Filip");
-        Node n1 = new Node(Node.NODE, "n1");
-        Node wsHans = new Node(Node.WORKSTATION, "Hans");
-        Node prAndy = new Node(Node.PRINTER, "Andy");
+        Printer prAndy = new Printer("Andy", null);
+        Workstation wsHans = new Workstation("Hans", prAndy);
+        Node n1 = new Node("n1", wsHans);
+        Workstation wsFilip = new Workstation("Filip", n1);
+        prAndy.setNextElement(wsFilip);
 
-        wsFilip.nextNode_ = n1;
-        n1.nextNode_ = wsHans;
-        wsHans.nextNode_ = prAndy;
-        prAndy.nextNode_ = wsFilip;
-
-        network.workstations_.put(wsFilip.name_, wsFilip);
-        network.workstations_.put(wsHans.name_, wsHans);
+        network.workstations_.put(wsFilip.getName(), wsFilip);
+        network.workstations_.put(wsHans.getName(), wsHans);
         network.firstNode_ = wsFilip;
 
         assert network.isInitialized();
@@ -129,7 +123,7 @@ public class Network {
     public boolean hasWorkstation(String ws) {
         assert isInitialized();
 
-        return workstations_.get(ws) != null && workstations_.get(ws).type_ == Node.WORKSTATION;
+        return workstations_.get(ws) != null;
     }
 
     /**
@@ -144,7 +138,7 @@ public class Network {
     @SuppressWarnings("unchecked")
     public boolean consistentNetwork() {
         assert isInitialized();
-        Node currentNode;
+        NetworkElement currentNode;
         int printersFound = 0, workstationsFound = 0;
         Hashtable encountered = new Hashtable(workstations_.size() * 2, 1.0f);
 
@@ -156,31 +150,22 @@ public class Network {
             return false;
         }
 
-        // verify whether all registered workstations are indeed workstations
-        for (Iterator<Node> workstationIter = workstations_.values().iterator(); workstationIter
-                .hasNext(); ) {
-            currentNode = workstationIter.next();
-            if (currentNode.type_ != Node.WORKSTATION) {
-                return false;
-            }
-        }
-
         // enumerate the token ring, verifying whether all workstations are
         // registered
         // also count the number of printers and see whether the ring is
         // circular
         currentNode = firstNode_;
-        while (!encountered.containsKey(currentNode.name_)) {
-            encountered.put(currentNode.name_, currentNode);
-            if (currentNode.type_ == Node.WORKSTATION) {
+        while (!encountered.containsKey(currentNode.getName())) {
+            encountered.put(currentNode.getName(), currentNode);
+            if (currentNode.isWorkstation()) {
                 workstationsFound++;
             }
 
-            if (currentNode.type_ == Node.PRINTER) {
+            if (currentNode.isPrinter()) {
                 printersFound++;
             }
 
-            currentNode = currentNode.nextNode_;
+            currentNode = currentNode.getNextElement();
         }
 
         if (currentNode != firstNode_) {
@@ -220,8 +205,10 @@ public class Network {
 
         report.write("Broadcast Request\n");
 
-        Packet packet = new Packet("BROADCAST", firstNode_.name_, firstNode_.name_);
-        Consumer<Node> consumerActionOnHop = node -> {logAcceptingBroadcastPacket(report, node);};
+        Packet packet = new Packet("BROADCAST", firstNode_.getName(), firstNode_.getName());
+        Consumer<NetworkElement> consumerActionOnHop = node -> {
+            logAcceptingBroadcastPacket(report, node);
+        };
         sendPacketToDestination(report, firstNode_, packet, consumerActionOnHop);
 
         report.write(">>> Broadcast travelled whole token ring.\n\n");
@@ -229,9 +216,9 @@ public class Network {
         return true;
     }
 
-    private void logAcceptingBroadcastPacket(ReportingWrapper report, Node currentNode) {
+    private void logAcceptingBroadcastPacket(ReportingWrapper report, NetworkElement currentNode) {
         report.write("\tNode '");
-        report.write(currentNode.name_);
+        report.write(currentNode.getName());
         report.write("' accepts broadcase packet.\n");
         report.flush();
     }
@@ -262,16 +249,28 @@ public class Network {
 
         Packet packet = new Packet(document, workstation, printer);
 
-        final Node startNode = workstations_.get(workstation);
-        Consumer<Node> emptyHopAction = node -> {};
-        final Node possibleDestinationNode = sendPacketToDestination(report, startNode, packet, emptyHopAction);
+        final Workstation startNode = workstations_.get(workstation);
+        Consumer<NetworkElement> emptyHopAction = node -> {
+        };
+        final NetworkElement possibleDestinationNode = sendPacketToDestination(report, startNode, packet, emptyHopAction);
 
         if (atDestination(possibleDestinationNode, packet)) {
-            return documentPrinter.printDocument(possibleDestinationNode, packet, report);
+            if (possibleDestinationNode.isPrinter()) {
+                documentPrinter.printDocument((Printer) possibleDestinationNode, packet, report);
+                return true;
+            } else {
+                logErrorForInvalidDeviceType(report);
+                return false;
+            }
         }
 
         logJobCanceled(report);
         return false;
+    }
+
+    private static void logErrorForInvalidDeviceType(ReportingWrapper report) {
+        report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
+        report.flush();
     }
 
     private static void logJobCanceled(ReportingWrapper report) {
@@ -279,10 +278,10 @@ public class Network {
         report.flush();
     }
 
-    private Node sendPacketToDestination(ReportingWrapper report, Node node, Packet packet, Consumer<Node> consumerActionOnHop) {
-        consumerActionOnHop.accept(node);
-        logForwardingOfPacket(report, node);
-        Node currentNode = node.nextNode_;
+    private NetworkElement sendPacketToDestination(ReportingWrapper report, NetworkElement networkElement, Packet packet, Consumer<NetworkElement> consumerActionOnHop) {
+        consumerActionOnHop.accept(networkElement);
+        logForwardingOfPacket(report, networkElement);
+        NetworkElement currentNode = networkElement.getNextElement();
         if (atDestination(currentNode, packet)) {
             return currentNode;
         }
@@ -294,12 +293,12 @@ public class Network {
         return sendPacketToDestination(report, currentNode, packet, consumerActionOnHop);
     }
 
-    private static boolean infiniteLoop(Packet packet, Node currentNode) {
-        return packet.origin_.equals(currentNode.name_);
+    private static boolean infiniteLoop(Packet packet, NetworkElement currentNode) {
+        return packet.origin_.equals(currentNode.getName());
     }
 
-    private boolean atDestination(Node currentNode, Packet packet) {
-        return currentNode.name_.equals(packet.destination_);
+    private boolean atDestination(NetworkElement currentNode, Packet packet) {
+        return currentNode.getName().equals(packet.destination_);
     }
 
     private static void logRequest(String workstation, String document, String printer, ReportingWrapper report) {
@@ -312,9 +311,9 @@ public class Network {
         report.write("' ...\n");
     }
 
-    private static void logForwardingOfPacket(ReportingWrapper report, Node startNode) {
+    private static void logForwardingOfPacket(ReportingWrapper report, NetworkElement startNode) {
         report.write("\tNode '");
-        report.write(startNode.name_);
+        report.write(startNode.getName());
         report.write("' passes packet on.\n");
         report.flush();
     }
@@ -340,32 +339,11 @@ public class Network {
      */
     public void printOn(StringBuffer buf) {
         assert isInitialized();
-        Node currentNode = firstNode_;
+        NetworkElement currentNode = firstNode_;
         do {
-            switch (currentNode.type_) {
-                case Node.NODE:
-                    buf.append("Node ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Node]");
-                    break;
-                case Node.WORKSTATION:
-                    buf.append("Workstation ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Workstation]");
-                    break;
-                case Node.PRINTER:
-                    buf.append("Printer ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Printer]");
-                    break;
-                default:
-                    buf.append("(Unexpected)");
-
-                    break;
-            }
-
+            buf.append(currentNode.getElementDescription());
             buf.append(" -> ");
-            currentNode = currentNode.nextNode_;
+            currentNode = currentNode.getNextElement();
         } while (currentNode != firstNode_);
         buf.append(" ... ");
     }
@@ -379,36 +357,14 @@ public class Network {
     public void printHTMLOn(StringBuffer buf) {
         assert isInitialized();
 
-        buf
-                .append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
-        Node currentNode = firstNode_;
+        buf.append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
+        NetworkElement currentNode = firstNode_;
         buf.append("\n\n<UL>");
         do {
             buf.append("\n\t<LI> ");
-            switch (currentNode.type_) {
-                case Node.NODE:
-                    buf.append("Node ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Node]");
-                    break;
-                case Node.WORKSTATION:
-                    buf.append("Workstation ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Workstation]");
-                    break;
-                case Node.PRINTER:
-                    buf.append("Printer ");
-                    buf.append(currentNode.name_);
-                    buf.append(" [Printer]");
-                    break;
-                default:
-                    buf.append("(Unexpected)");
-
-                    break;
-            }
-
+            buf.append(currentNode.getElementDescription());
             buf.append(" </LI>");
-            currentNode = currentNode.nextNode_;
+            currentNode = currentNode.getNextElement();
         } while (currentNode != firstNode_);
         buf.append("\n\t<LI>...</LI>\n</UL>\n\n</BODY>\n</HTML>\n");
     }
@@ -422,32 +378,12 @@ public class Network {
     public void printXMLOn(StringBuffer buf) {
         assert isInitialized();
 
-        Node currentNode = firstNode_;
+        NetworkElement currentNode = firstNode_;
         buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<network>");
         do {
             buf.append("\n\t");
-            switch (currentNode.type_) {
-                case Node.NODE:
-                    buf.append("<node>");
-                    buf.append(currentNode.name_);
-                    buf.append("</node>");
-                    break;
-                case Node.WORKSTATION:
-                    buf.append("<workstation>");
-                    buf.append(currentNode.name_);
-                    buf.append("</workstation>");
-                    break;
-                case Node.PRINTER:
-                    buf.append("<printer>");
-                    buf.append(currentNode.name_);
-                    buf.append("</printer>");
-                    break;
-                default:
-                    buf.append("<unknown></unknown>");
-                    break;
-            }
-
-            currentNode = currentNode.nextNode_;
+            buf.append(currentNode.getXmlDescription());
+            currentNode = currentNode.getNextElement();
         } while (currentNode != firstNode_);
         buf.append("\n</network>");
     }

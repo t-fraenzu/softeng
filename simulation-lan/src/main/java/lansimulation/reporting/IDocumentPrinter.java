@@ -1,10 +1,8 @@
 package lansimulation.reporting;
 
-import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
-
-import java.io.Writer;
+import lansimulation.internals.Printer;
 
 public interface IDocumentPrinter {
-    boolean printDocument(Node printer, Packet document, ReportingWrapper report);
+    void printDocument(Printer printer, Packet document, ReportingWrapper report);
 }

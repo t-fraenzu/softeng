@@ -1,14 +1,13 @@
 package lansimulation.reporting;
 
-import lansimulation.Network;
-import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
+import lansimulation.internals.Printer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringWriter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DocumentPrinterTest {
 
@@ -30,7 +29,7 @@ class DocumentPrinterTest {
         String messageWithValidAuthor = "!PSSomeOtherTextauthor:" + expectedAuthor;
         Packet documentMock = new Packet(messageWithValidAuthor, anyDestination);
 
-        Node printerNode = new Node(Node.PRINTER, "anyName");
+        Printer printerNode = new Printer("anyName", null);
 
         // act
         testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
@@ -46,7 +45,7 @@ class DocumentPrinterTest {
         final String messageWithValidTitle = "!PSSomeOtherTexttitle:" + expectedTitle;
         final Packet documentMock = new Packet(messageWithValidTitle, ANY_DESTINATION);
 
-        Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
+        Printer printerNode = new Printer(ANY_NODENAME, null);
 
         // act
         testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
@@ -62,7 +61,7 @@ class DocumentPrinterTest {
         final String messageWithValidTitle = "AuthorA>" + expectedAuthor + "<test";
         final Packet documentMock = new Packet(messageWithValidTitle, ANY_DESTINATION);
 
-        Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
+        Printer printerNode = new Printer(ANY_NODENAME, null);
 
         // act
         testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
@@ -77,7 +76,7 @@ class DocumentPrinterTest {
         final String expectedDocumentTitle = "ASCII DOCUMENT";
         final Packet documentMock = new Packet("anyMessageText", ANY_DESTINATION);
 
-        Node printerNode = new Node(Node.PRINTER, ANY_NODENAME);
+        Printer printerNode = new Printer(ANY_NODENAME, null);
 
         // act
         testee.printDocument(printerNode, documentMock, new ReportingWrapper(writer));
