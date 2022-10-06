@@ -13,14 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NetworkTest {
 
-    private Network testee;
-
-    @BeforeEach
-    public void setUp(){
-        testee = new Network(1, Mockito.mock(IDocumentPrinter.class));
-    }
-
-
     @Test
     public void test_requestBroadcast_sendsMessageToAll(){
         StringWriter stringWriter = new StringWriter();

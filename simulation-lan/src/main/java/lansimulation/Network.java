@@ -38,6 +38,7 @@ import java.util.function.Consumer;
  */
 public class Network {
     private final IDocumentPrinter documentPrinter;
+    private final NetworkStatePrinting networkStatePrinting;
     /**
      * Holds a pointer to myself. Used to verify whether I am properly
      * initialized.
@@ -63,8 +64,9 @@ public class Network {
      * </p>
      */
     @SuppressWarnings("unchecked")
-    public Network(int size, IDocumentPrinter documentPrinter) {
+    public Network(int size, IDocumentPrinter documentPrinter, NetworkStatePrinting networkStatePrinting) {
         this.documentPrinter = documentPrinter;
+        this.networkStatePrinting = networkStatePrinting;
         assert size > 0;
         initPtr_ = this;
         firstNode_ = null;
@@ -90,7 +92,7 @@ public class Network {
      */
     @SuppressWarnings("unchecked")
     public static Network DefaultExample() {
-        Network network = new Network(2, new DocumentPrinter(new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY)));
+        Network network = new Network(2, new DocumentPrinter(new MessageAdapter(MessageAdapter.DEFAULT_REGISTRY)), new NetworkStatePrinting());
 
         Printer prAndy = new Printer("Andy", null);
         Workstation wsHans = new Workstation("Hans", prAndy);
@@ -327,64 +329,11 @@ public class Network {
     public String toString() {
         assert isInitialized();
         StringBuffer buf = new StringBuffer(30 * workstations_.size());
-        printOn(buf);
+        networkStatePrinting.printOn(buf, firstNode_);
         return buf.toString();
     }
 
-    /**
-     * Write a printable representation of #receiver on the given #buf.
-     * <p>
-     * <strong>Precondition:</strong> isInitialized();
-     * </p>
-     */
-    public void printOn(StringBuffer buf) {
-        assert isInitialized();
-        NetworkElement currentNode = firstNode_;
-        do {
-            buf.append(currentNode.getElementDescription());
-            buf.append(" -> ");
-            currentNode = currentNode.getNextElement();
-        } while (currentNode != firstNode_);
-        buf.append(" ... ");
-    }
-
-    /**
-     * Write a HTML representation of #receiver on the given #buf.
-     * <p>
-     * <strong>Precondition:</strong> isInitialized();
-     * </p>
-     */
-    public void printHTMLOn(StringBuffer buf) {
-        assert isInitialized();
-
-        buf.append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
-        NetworkElement currentNode = firstNode_;
-        buf.append("\n\n<UL>");
-        do {
-            buf.append("\n\t<LI> ");
-            buf.append(currentNode.getElementDescription());
-            buf.append(" </LI>");
-            currentNode = currentNode.getNextElement();
-        } while (currentNode != firstNode_);
-        buf.append("\n\t<LI>...</LI>\n</UL>\n\n</BODY>\n</HTML>\n");
-    }
-
-    /**
-     * Write an XML representation of #receiver on the given #buf.
-     * <p>
-     * <strong>Precondition:</strong> isInitialized();
-     * </p>
-     */
-    public void printXMLOn(StringBuffer buf) {
-        assert isInitialized();
-
-        NetworkElement currentNode = firstNode_;
-        buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<network>");
-        do {
-            buf.append("\n\t");
-            buf.append(currentNode.getXmlDescription());
-            currentNode = currentNode.getNextElement();
-        } while (currentNode != firstNode_);
-        buf.append("\n</network>");
+    public NetworkElement getStartElement() {
+        return firstNode_;
     }
 }

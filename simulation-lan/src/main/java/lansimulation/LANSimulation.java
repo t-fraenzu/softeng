@@ -33,18 +33,19 @@ public class LANSimulation {
         System.out.print("siumlate on Network: ");
         System.out.println(network);
         System.out.println();
+        NetworkStatePrinting nsp = new NetworkStatePrinting();
+        nsp.printHTMLOn(buf, network.getStartElement());
 
-        network.printHTMLOn(buf);
         System.out
                 .println("---------------------------------HTML------------------------------------------");
-        System.out.println(buf.toString());
+        System.out.println(buf);
         System.out.println();
 
         buf.setLength(0);
-        network.printXMLOn(buf);
+        nsp.printXMLOn(buf, network.getStartElement());
         System.out
                 .println("---------------------------------XML------------------------------------------");
-        System.out.println(buf.toString());
+        System.out.println(buf);
         System.out.println();
 
         System.out
@@ -128,7 +129,7 @@ public class LANSimulation {
         System.out.println();
         System.out
                 .println("---------------------------------REPORT------------------------------------------");
-        System.out.println(report.toString());
+        System.out.println(report);
     }
 
     public static void main(String args[]) {

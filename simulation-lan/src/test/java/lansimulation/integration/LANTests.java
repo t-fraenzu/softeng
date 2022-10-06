@@ -20,6 +20,7 @@
 package lansimulation.integration;
 
 import lansimulation.Network;
+import lansimulation.NetworkStatePrinting;
 import lansimulation.internals.Node;
 import lansimulation.internals.Packet;
 import lansimulation.reporting.ReportingWrapper;
@@ -244,44 +245,36 @@ public class LANTests {
             assertTrue(false, "Could not create '" + generateOutputFName + "'");
             return;
         }
-
+        NetworkStatePrinting nsp = new NetworkStatePrinting();
         try {
-            buf
-                    .append("---------------------------------ASCII------------------------------------------\n");
-            network.printOn(buf);
-            buf
-                    .append("\n\n---------------------------------HTML------------------------------------------\n");
-            network.printHTMLOn(buf);
-            buf
-                    .append("\n\n---------------------------------XML------------------------------------------\n");
-            network.printXMLOn(buf);
+
+            buf.append("---------------------------------ASCII------------------------------------------\n");
+            nsp.printOn(buf, network.getStartElement());
+            buf.append("\n\n---------------------------------HTML------------------------------------------\n");
+            nsp.printHTMLOn(buf, network.getStartElement());
+            buf.append("\n\n---------------------------------XML------------------------------------------\n");
+            nsp.printXMLOn(buf, network.getStartElement());
             generateOutput.write(buf.toString());
-            report
-                    .write("\n\n---------------------------------SCENARIO: Print Success --------------------------\n");
+
+            report.write("\n\n---------------------------------SCENARIO: Print Success --------------------------\n");
             network.requestWorkstationPrintsDocument("Filip", "Hello World",
                     "Andy", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: PrintFailure (UnkownPrinter) ------------\n");
+            report.write("\n\n---------------------------------SCENARIO: PrintFailure (UnkownPrinter) ------------\n");
             network.requestWorkstationPrintsDocument("Filip", "Hello World",
                     "UnknownPrinter", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: PrintFailure (print on Workstation) -----\n");
+            report.write("\n\n---------------------------------SCENARIO: PrintFailure (print on Workstation) -----\n");
             network.requestWorkstationPrintsDocument("Filip", "Hello World",
                     "Hans", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: PrintFailure (print on Node) -----\n");
+            report.write("\n\n---------------------------------SCENARIO: PrintFailure (print on Node) -----\n");
             network.requestWorkstationPrintsDocument("Filip", "Hello World",
                     "n1", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: Print Success Postscript-----------------\n");
+            report.write("\n\n---------------------------------SCENARIO: Print Success Postscript-----------------\n");
             network.requestWorkstationPrintsDocument("Filip",
                     "!PS Hello World in postscript", "Andy", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: Print Failure Postscript-----------------\n");
+            report.write("\n\n---------------------------------SCENARIO: Print Failure Postscript-----------------\n");
             network.requestWorkstationPrintsDocument("Filip",
                     "!PS Hello World in postscript", "Hans", report);
-            report
-                    .write("\n\n---------------------------------SCENARIO: Broadcast Success -----------------\n");
+            report.write("\n\n---------------------------------SCENARIO: Broadcast Success -----------------\n");
             network.requestBroadcast(report);
             generateOutput.write(report.toString());
         } catch (IOException exc) {
